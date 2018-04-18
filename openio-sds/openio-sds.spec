@@ -50,7 +50,7 @@ BuildRequires:  libcurl-devel
 BuildRequires:  libapr1-devel            >= 1.2
 BuildRequires:  apache2-devel            >= 2.2
 BuildRequires:  libjson-c-devel          >= 0.12
-BuildRequires:  libdb-6_0-devel
+BuildRequires:  db-devel                 >= 4.8
 BuildRequires:  zeromq-devel
 
 BuildRequires:  fdupes
