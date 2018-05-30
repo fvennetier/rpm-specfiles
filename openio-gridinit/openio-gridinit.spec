@@ -45,6 +45,7 @@ Requires:       %{name}-utils  = 1:%{version}
 # SuSe requires
 %if 0%{?suse_version}
 Requires:  systemd
+%{?systemd_requires}
 %endif
 
 
