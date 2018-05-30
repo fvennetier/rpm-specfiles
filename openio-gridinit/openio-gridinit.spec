@@ -2,18 +2,17 @@
 
 Name:           openio-%{realname}
 %if %{?_with_test:0}%{!?_with_test:1}
-Version:        1.6
-Release:        3%{?dist}
+Version:        1.7.0
+Release:        1%{?dist}
 %define         tarversion %{version}
-Source0:        https://github.com/open-io/gridinit/archive/%{version}.0.tar.gz
 %else
 %define         date %(date +"%Y%m%d%H%M")
 Version:        test%{date}.%{tag}
 Release:        0%{?dist}
 %define         tarversion %{tag}
-Source0:        https://github.com/open-io/gridinit/archive/%{tarversion}.tar.gz
 Epoch:          1
 %endif
+Source0:        https://github.com/open-io/gridinit/archive/%{tarversion}.tar.gz
 
 Summary:        OpenIO gridinit daemon
 License:        AGPL-3.0+
@@ -94,6 +93,7 @@ make %{?_smp_mflags}
 make DESTDIR=%{buildroot} install
 
 # Default config file
+%{__mkdir_p} -m755 %{buildroot}%{_sysconfdir}
 %{__install} -m644 gridinit.conf %{buildroot}%{_sysconfdir}/%{realname}.conf
 
 # Install init script
@@ -123,8 +123,7 @@ make DESTDIR=%{buildroot} install
 %defattr(-,root,root,-)
 %{_libdir}/systemd/system/gridinit.service
 %{_bindir}/*
-%dir %{_sysconfdir}/%{realname}
-%config(noreplace) %{_sysconfdir}/%{realname}/*
+%config(noreplace) %{_sysconfdir}/%{realname}.conf
 %{_prefix}%{_lib}/tmpfiles.d/*
 %ghost /run/%{realname}
 %config %{_sysconfdir}/rsyslog.d/*
@@ -172,6 +171,8 @@ fi
 
 
 %changelog
+* Wed May 30 2018 - 1.7.0-1 - Vincent Legoll <vincent.legoll@openio.io>
+- New release
 * Thu Oct 27 2016 - 1.6-3 - Romain Acciari <romain.acciari@openio.io>
 - Add tmpfiles_create at %%post for OpenSuSe
 * Sun Apr 17 2016 - 1.6-2 - Romain Acciari <romain.acciari@openio.io>
