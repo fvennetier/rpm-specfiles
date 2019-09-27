@@ -1,6 +1,8 @@
 %define         realname gridinit
+%global         _lto_cflags %{_lto_cflags} -ffat-lto-objects
 
 Name:           openio-%{realname}
+Url:            https://github.com/open-io/gridinit
 %if %{?_with_test:0}%{!?_with_test:1}
 Version:        2.0.2
 Release:        4%{?dist}
@@ -15,6 +17,7 @@ Epoch:          1
 Source0:        https://github.com/open-io/gridinit/archive/%{tarversion}.tar.gz
 
 Summary:        OpenIO gridinit daemon
+Group:          System/Daemons
 License:        AGPL-3.0+
 #URL:
 Source1:        %{name}-systemd.service
@@ -66,11 +69,11 @@ cmake \
   -DGRIDINIT_SOCK_PATH="/run/%{realname}/%{realname}.sock" \
   .
 
-make %{?_smp_mflags}
+%{__make}
 
 
 %install
-make DESTDIR=%{buildroot} install
+%{__make} DESTDIR=%{buildroot} install
 
 # Default config file & services directory
 %{__mkdir_p} -m755 -v %{buildroot}%{_sysconfdir}/gridinit.d
@@ -78,7 +81,7 @@ make DESTDIR=%{buildroot} install
 
 # Install systemd unit file
 %{__mkdir_p} -m755 -v %{buildroot}%{_unitdir}
-%{__install} -m644 %{SOURCE1} %{buildroot}%{_unitdir}/gridinit.service
+%{__install} -m644 %{SOURCE1} %{buildroot}%{_unitdir}/%{realname}.service
 
 # Install tmpfiles
 %{__mkdir_p} -m755 -v %{buildroot}%{_tmpfilesdir}
@@ -101,7 +104,7 @@ make DESTDIR=%{buildroot} install
 
 %files
 %defattr(-,root,root,-)
-%{_unitdir}/gridinit.service
+%{_unitdir}/%{realname}.service
 %{_bindir}/*
 %dir %{_sysconfdir}/gridinit.d
 %config(noreplace) %{_sysconfdir}/gridinit.conf
@@ -113,38 +116,42 @@ make DESTDIR=%{buildroot} install
 
 %pre
 %if 0%{?suse_version}
-%service_add_pre gridinit.service
+%service_add_pre %{realname}.service
 %endif
 
 
 %post
 if [ $1 -eq 1 ] ; then
   # Initial installation
-  /usr/bin/systemctl preset gridinit.service >/dev/null 2>&1 || :
+  /usr/bin/systemctl preset %{realname}.service >/dev/null 2>&1 || :
 else
   /usr/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 fi
 /usr/bin/systemctl reload-or-restart rsyslog.service || :
 %tmpfiles_create %{_tmpfilesdir}/gridinit.conf
 %if 0%{?suse_version}
-  %service_add_post gridinit.service
+  %service_add_post %{realname}.service
 %endif
 
 
 %preun
 if [ $1 -eq 0 ] ; then
   # Package removal, not upgrade
-  /usr/bin/systemctl --no-reload disable gridinit.service > /dev/null 2>&1 || :
-  /usr/bin/systemctl stop gridinit.service > /dev/null 2>&1 || :
+  /usr/bin/systemctl --no-reload disable %{realname}.service > /dev/null 2>&1 || :
+  /usr/bin/systemctl stop %{realname}.service > /dev/null 2>&1 || :
 fi
+%service_del_preun %{realname}.service
 
 
 %postun
 /usr/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 /usr/bin/systemctl reload-or-restart rsyslog.service || :
+%service_del_postun %{realname}.service
 
 
 %changelog
+* Fri Sep 27 2019 - 2.0.2-5 - Florent Vennetier <florent@openio.io>
+- Resolve some rpmlint warnings
 * Tue May 28 2019 - 2.0.2-4 - Vincent Legoll <vincent.legoll@openio.io>
 - New release
 * Fri Apr 26 2019 - 2.0.2-3 - Vincent Legoll <vincent.legoll@openio.io>
