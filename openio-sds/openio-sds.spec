@@ -9,7 +9,7 @@
 Name:           openio-sds
 
 %if %{?_with_test:0}%{!?_with_test:1}
-Version:        5.1.0
+Version:        5.2.2
 Release:        1%{?dist}
 %define         tarversion %{version}
 %define         targetversion %{version}
@@ -54,13 +54,20 @@ BuildRequires:  libcurl-devel
 %if %{?suse_version}0
 BuildRequires:  libapr1-devel            >= 1.2
 BuildRequires:  apache2-devel            >= 2.2
+BuildRequires:  go                       >= 1.11
+BuildRequires:  golang-org-x-sys
+BuildRequires:  golang-packaging
 BuildRequires:  libjson-c-devel          >= 0.12
-BuildRequires:  libdb-6_0-devel
+BuildRequires:  db-devel                 >= 4.8
 BuildRequires:  zeromq-devel
+
+Requires:       golang(golang.org/x/sys/unix)
+BuildRequires:  golang(golang.org/x/sys/unix)
 
 BuildRequires:  fdupes
 %else
 BuildRequires:  apr-devel                >= 1.2
+BuildRequires:  golang
 BuildRequires:  httpd-devel              >= 2.2
 BuildRequires:  json-c                   >= 0.12
 BuildRequires:  json-c-devel             >= 0.12
@@ -76,9 +83,8 @@ BuildRequires:  libevent-devel           >= 2.0
 %endif
 BuildRequires:  lzo-devel                >= 2.0
 BuildRequires:  zlib-devel
-BuildRequires:  openio-asn1c             >= 0.9.27
+BuildRequires:  asn1c                    >= 0.9.27
 BuildRequires:  cmake,bison,flex
-BuildRequires:  golang
 
 
 %description
@@ -92,7 +98,6 @@ OpenIO is a fork of Redcurrant, from Worldline by Atos.
 Summary: Common files for OpenIO Cloud Storage Solution
 Requires:       expat
 Requires:       glib2         >= 2.52
-Requires:       openio-asn1c  >= 0.9.27
 Requires:       zeromq        >= 4.0.0
 Requires:       zlib
 %if %{?suse_version}0
@@ -142,7 +147,6 @@ BuildRequires:  libevent           >= 2.0
 %endif
 Requires:       leveldb
 Requires:       lzo                >= 2.0
-Requires:       openio-asn1c       >= 0.9.27
 Requires:       python-gunicorn    >= 19.4.5
 Requires:       python-eventlet
 Requires:       python-redis
@@ -193,7 +197,7 @@ Requires:       %{name}-server  = 1:%{version}
 %endif
 %if %{?suse_version}0
 Requires:       apache2        >= 2.2
-Requires:       libdb-6_0
+Requires:       db             >= 4.8
 %else
 Requires:       httpd          >= 2.2
 Requires:       libdb
@@ -226,6 +230,9 @@ This package contains side tools for OpenIO SDS solution.
 %setup -q -n %{tarname}-%{tarversion}
 
 # Golang dependencies
+%if 0%{suse_version}
+# Nothing
+%else
 cd ..
 tar xf %{SOURCE2}
 tar xf %{SOURCE3}
@@ -245,8 +252,14 @@ mkdir -p /builddir/go/src/golang.org/x
 cd /builddir/go/src/golang.org/x/
 ln -s /builddir/build/BUILD/sys-* sys
 cd -
+%endif
 
 %build
+%if 0%{suse_version}
+%goprep gopkg.in/ini.v1
+%goprep golang.org/x/sys/unix
+%endif
+
 #VL: Workaround: "ERROR: No build ID note found in ..."
 %undefine _missing_build_ids_terminate_build
 cmake \
@@ -419,6 +432,10 @@ fi
 /sbin/ldconfig
 
 %changelog
+* Tue Oct 29 2019 - 5.2.2-1 - Florent Vennetier <florent@openio.io>
+- New release
+- Do not depend on custom asn1c
+- Opensuse: do not compile go deps, require the packages
 * Fri Aug 16 2019 - 5.1.0-1 - Vladimir Dombrovski <vladimir@openio.io>
 - New release
 * Wed Jun 05 2019 - 5.0.0.0b1-1 - Vladimir Dombrovski <vladimir@openio.io>
