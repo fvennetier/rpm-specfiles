@@ -2,8 +2,8 @@
 
 Name:           openio-%{realname}
 %if %{?_with_test:0}%{!?_with_test:1}
-Version:        2.0.2
-Release:        4%{?dist}
+Version:        2.0.3
+Release:        1%{?dist}
 %define         tarversion %{version}
 %else
 %define         date %(date +"%Y%m%d%H%M")
@@ -33,13 +33,21 @@ BuildRequires:  git
 BuildRequires:  bison
 BuildRequires:  flex
 BuildRequires:  cmake
+%if %{_vendor} == "debbuild"
+BuildRequires:  libglib2.0-dev >= 2.52.0
+%else
 BuildRequires:  glib2-devel    >= 2.52.0
+%endif
 BuildRequires:  systemd
 %if 0%{?suse_version}
 BuildRequires:  rsyslog
 %endif
 
+%if %{_vendor} == "debbuild"
+Requires:       libglib2.0    >= 2.52
+%else
 Requires:       glib2         >= 2.52
+%endif
 # SuSe requires
 %if 0%{?suse_version}
 Requires:  systemd
@@ -125,7 +133,9 @@ else
   /usr/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 fi
 /usr/bin/systemctl reload-or-restart rsyslog.service || :
+%if %{_vendor} != "debbuild"
 %tmpfiles_create %{_tmpfilesdir}/gridinit.conf
+%endif
 %if 0%{?suse_version}
   %service_add_post gridinit.service
 %endif
@@ -145,6 +155,9 @@ fi
 
 
 %changelog
+* Wed Nov 29 2019 - 2.0.3-1 - Florent Vennetier <florent@openio.io>
+- New release 2.0.3
+- Fix macros for debbuild
 * Tue May 28 2019 - 2.0.2-4 - Vincent Legoll <vincent.legoll@openio.io>
 - New release
 * Fri Apr 26 2019 - 2.0.2-3 - Vincent Legoll <vincent.legoll@openio.io>
