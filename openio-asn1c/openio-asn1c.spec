@@ -13,7 +13,7 @@ Source1:	%{name}-rpmlintrc
 %endif
 
 BuildRequires:	autoconf,automake,libtool
-#Requires:	
+#Requires:
 Provides:   asn1c
 
 %description
@@ -28,7 +28,11 @@ autoreconf -iv
 
 
 %build
+%if %{_vendor} == "debbuild"
+%configure --docdir=%{_docdir}
+%else
 %configure --docdir=%{_defaultdocdir}
+%endif
 make %{?_smp_mflags}
 
 
@@ -38,9 +42,15 @@ make install DESTDIR=%{buildroot}
 %{__rm} -rf $RPM_BUILD_ROOT/%{_libdir}/*.la # Clean useless files
 
 # --docdir option is broken
+%if %{_vendor} == "debbuild"
+%{__mkdir_p} $RPM_BUILD_ROOT/%{_docdir}
+%{__mv} $RPM_BUILD_ROOT/%{_datadir}/doc/%{realname} \
+        $RPM_BUILD_ROOT/%{_docdir}/%{name}-%{version}
+%else
 %{__mkdir_p} $RPM_BUILD_ROOT/%{_defaultdocdir}
 %{__mv} $RPM_BUILD_ROOT/%{_datadir}/doc/%{realname} \
         $RPM_BUILD_ROOT/%{_defaultdocdir}/%{name}-%{version}
+%endif
 
 %files
 #%doc BUGS COPYING ChangeLog FAQ README.md
@@ -48,7 +58,11 @@ make install DESTDIR=%{buildroot}
 %{_bindir}/*
 %{_mandir}/man1/*
 %{_datadir}/%{realname}
+%if %{_vendor} == "debbuild"
+%{_docdir}/%{name}-%{version}
+%else
 %{_defaultdocdir}/%{name}-%{version}
+%endif
 
 
 %changelog
