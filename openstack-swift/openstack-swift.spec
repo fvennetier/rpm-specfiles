@@ -1,14 +1,13 @@
 %{!?upstream_version: %global upstream_version %{version}%{?milestone}}
 Name:             openstack-swift
-Version:          2.13.0
+Version:          2.26.0
 Release:          1%{?dist}
 Summary:          OpenStack Object Storage (Swift)
 
 License:          ASL 2.0
 URL:              http://launchpad.net/swift
-Source0:          https://tarballs.openstack.org/swift/swift-%{upstream_version}.tar.gz
-
-Patch0:           ocata-s3-account-substitution.patch
+##Source0:          https://tarballs.openstack.org/swift/swift-%{upstream_version}.tar.gz
+Source0:          https://github.com/fvennetier/swift/archive/feature/oio-backend-object-versioning.tar.gz
 
 Source2:          %{name}-account.service
 Source21:         %{name}-account@.service
